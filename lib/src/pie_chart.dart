@@ -27,9 +27,6 @@ class PieChart extends StatefulWidget {
     this.showLegends = true,
     this.initialAngle = 0.0,
     this.decimalPlaces = 0,
-    this.formatChartValues,
-    this.centerText,
-    this.strokeWidth = 20.0,
     Key key,
   }) : super(key: key);
 
@@ -56,9 +53,6 @@ class PieChart extends StatefulWidget {
   final List<Color> colorList;
   final bool showLegends;
   final double initialAngle;
-  final Function formatChartValues;
-  final String centerText;
-  final double strokeWidth;
 
   @override
   _PieChartState createState() => _PieChartState();
@@ -81,10 +75,18 @@ class _PieChartState extends State<PieChart>
     this.legendValues = widget.dataMap.values.toList(growable: false);
   }
 
+  Color getColor(List<Color> colorList, int index) {
+    if (index > (colorList.length - 1)) {
+      final newIndex = index % (colorList.length - 1);
+      return colorList.elementAt(newIndex);
+    }
+    return colorList.elementAt(index);
+  }
+
   void initData() {
     assert(
-      widget.dataMap != null && widget.dataMap.isNotEmpty,
-      "dataMap passed to pie chart cant be null or empty",
+    widget.dataMap != null && widget.dataMap.isNotEmpty,
+    "dataMap passed to pie chart cant be null or empty",
     );
     initLegends();
     initValues();
@@ -134,10 +136,13 @@ class _PieChartState extends State<PieChart>
         builder: (_, c) => Container(
           height: widget.chartRadius != null
               ? c.maxWidth < widget.chartRadius
-                  ? c.maxWidth
-                  : widget.chartRadius
+              ? c.maxWidth
+              : widget.chartRadius
               : null,
-          child: CustomPaint(
+          child:
+
+          CustomPaint(
+
             painter: PieChartPainter(
               _fraction,
               widget.showChartValuesOutside,
@@ -150,10 +155,8 @@ class _PieChartState extends State<PieChart>
               decimalPlaces: widget.decimalPlaces,
               showChartValueLabel: widget.showChartValueLabel,
               chartType: widget.chartType,
-              centerText: widget.centerText,
-              formatChartValues: widget.formatChartValues,
-              strokeWidth: widget.strokeWidth,
             ),
+
             child: AspectRatio(aspectRatio: 1),
           ),
         ),
@@ -172,13 +175,13 @@ class _PieChartState extends State<PieChart>
             mainAxisSize: MainAxisSize.min,
             children: legendTitles
                 .map((item) => Legend(
-                      title: item,
-                      color: getColor(
-                        widget.colorList,
-                        legendTitles.indexOf(item),
-                      ),
-                      style: widget.legendStyle,
-                    ))
+              title: item,
+              color: getColor(
+                widget.colorList,
+                legendTitles.indexOf(item),
+              ),
+              style: widget.legendStyle,
+            ))
                 .toList(),
           ),
         ),

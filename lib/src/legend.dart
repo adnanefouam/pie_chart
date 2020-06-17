@@ -18,10 +18,14 @@ class Legend extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Container(
+          decoration: new BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
           margin: EdgeInsets.symmetric(vertical: 2.0),
-          height: 20.0,
-          width: 18.0,
-          color: color,
+          height: 12.0,
+          width: 12.0,
+
         ),
         SizedBox(
           width: 8.0,

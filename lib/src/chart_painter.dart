@@ -5,6 +5,7 @@ import 'package:pie_chart/pie_chart.dart';
 
 class PieChartPainter extends CustomPainter {
   List<Paint> _paintList = [];
+  List<Paint> _paintListShadow = [];
   List<double> _subParts;
   double _total = 0;
   double _totalAngle = math.pi * 2;
@@ -17,35 +18,37 @@ class PieChartPainter extends CustomPainter {
   final int decimalPlaces;
   final bool showChartValueLabel;
   final ChartType chartType;
-  final String centerText;
-  final Function formatChartValues;
-  final double strokeWidth;
 
   double _prevAngle = 0;
 
   PieChartPainter(
-    double angleFactor,
-    this.showChartValuesOutside,
-    List<Color> colorList, {
-    this.chartValueStyle,
-    this.chartValueBackgroundColor,
-    List<double> values,
-    this.initialAngle,
-    this.showValuesInPercentage,
-    this.decimalPlaces,
-    this.showChartValueLabel,
-    this.chartType,
-    this.centerText,
-    this.formatChartValues,
-    this.strokeWidth,
-  }) {
+      double angleFactor,
+      this.showChartValuesOutside,
+      List<Color> colorList, {
+        this.chartValueStyle,
+        this.chartValueBackgroundColor,
+        List<double> values,
+        this.initialAngle,
+        this.showValuesInPercentage,
+        this.decimalPlaces,
+        this.showChartValueLabel,
+        this.chartType,
+      }) {
     for (int i = 0; i < values.length; i++) {
-      final paint = Paint()..color = getColor(colorList, i);
+      final paint = Paint()..color = _getColor(colorList, i);
+      final shadowPaint = Paint()..color = _getColor(colorList, i).withOpacity(0.6);
+
       if (chartType == ChartType.ring) {
         paint.style = PaintingStyle.stroke;
-        paint.strokeWidth = strokeWidth;
+        paint.strokeWidth = 20;
+        paint.strokeCap=StrokeCap.round;
+        shadowPaint.style=PaintingStyle.stroke;
+        shadowPaint.strokeWidth = 16;
+        shadowPaint.maskFilter=MaskFilter.blur(BlurStyle.normal, 16);
+
       }
       _paintList.add(paint);
+      _paintListShadow.add(shadowPaint);
     }
     _totalAngle = angleFactor * math.pi * 2;
     _subParts = values;
@@ -54,6 +57,8 @@ class PieChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+
+
     final side = size.width < size.height ? size.width : size.height;
     _prevAngle = this.initialAngle;
     for (int i = 0; i < _subParts.length; i++) {
@@ -62,7 +67,18 @@ class PieChartPainter extends CustomPainter {
         _prevAngle,
         (((_totalAngle) / _total) * _subParts[i]),
         chartType == ChartType.disc ? true : false,
+
         _paintList[i],
+
+      );
+      canvas.drawArc(
+        new Rect.fromLTWH(0.0, 0.0, side, size.height),
+        _prevAngle,
+        (((_totalAngle) / _total) * _subParts[i]),
+        chartType == ChartType.disc ? true : false,
+        _paintListShadow[i],
+
+
       );
       final radius = showChartValuesOutside ? side * 0.5 : side / 3;
       final x = (radius) *
@@ -72,27 +88,25 @@ class PieChartPainter extends CustomPainter {
           math.sin(
               _prevAngle + ((((_totalAngle) / _total) * _subParts[i]) / 2));
       if (_subParts.elementAt(i).toInt() != 0) {
-        final value = formatChartValues != null
-            ? formatChartValues(_subParts.elementAt(i))
-            : _subParts.elementAt(i).toStringAsFixed(this.decimalPlaces);
         final name = showValuesInPercentage
             ? (((_subParts.elementAt(i) / _total) * 100)
-                    .toStringAsFixed(this.decimalPlaces) +
-                '%')
-            : value;
+            .toStringAsFixed(this.decimalPlaces) +
+            '%')
+            : _subParts.elementAt(i).toStringAsFixed(this.decimalPlaces);
 
         _drawName(canvas, name, x, y, side);
       }
       _prevAngle = _prevAngle + (((_totalAngle) / _total) * _subParts[i]);
     }
 
-    if (centerText != null && centerText.trim().isNotEmpty) {
-      _drawCenterText(canvas, side);
-    }
   }
 
-  void _drawCenterText(Canvas canvas, double side) {
-    _drawName(canvas, centerText, 0, 0, side);
+  Color _getColor(List<Color> colorList, int index) {
+    if (index > (colorList.length - 1)) {
+      var newIndex = index % (colorList.length - 1);
+      return colorList.elementAt(newIndex);
+    } else
+      return colorList.elementAt(index);
   }
 
   void _drawName(Canvas canvas, String name, double x, double y, double side) {
